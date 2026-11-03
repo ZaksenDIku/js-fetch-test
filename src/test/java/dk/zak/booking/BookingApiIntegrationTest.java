@@ -133,7 +133,7 @@ class BookingApiIntegrationTest {
         mvc.perform(put("/api/bookings/{id}", id).contentType(MediaType.APPLICATION_JSON)
             .content(body("Zak opdateret", treatmentId(), moved)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.startTime").value(moved));
+            .andExpect(jsonPath("$.startTime").value(moved + ":00"));
         mvc.perform(delete("/api/bookings/{id}", id))
             .andExpect(status().isNoContent())
             .andExpect(content().string(""));
