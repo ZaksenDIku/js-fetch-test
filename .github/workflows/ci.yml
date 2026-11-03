@@ -1,0 +1,23 @@
+name: ZAK BOOKING – test
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Java 21 + Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Kontrollér JavaScript
+        run: node --check src/main/resources/static/app.js
+      - name: Maven/JUnit + H2 integration
+        run: ./mvnw test

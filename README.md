@@ -1,68 +1,75 @@
-# Fetch-lab: forstå HTTP 400
+# ZAK BOOKING ✂️ · full-stack eksamenslab
 
-Et lille JavaScript-program til begyndere. **To knapper, én opgave, ingen frameworks eller eksterne API'er.**
+Et lille, ægte bookingsystem til en frisørsalon med **Java 21 + Spring Boot 3.5 + JPA/Hibernate + H2 på disk** og **HTML/CSS/vanilla JavaScript**. Spring Boot serverer både websiden og REST API'et på samme port. Ingen npm, React eller mock-API.
 
-## Start lokalt
-
-Åbn Terminal på din Mac:
+## Start på Mac (én kommando efter checkout)
 
 ```bash
 git clone https://github.com/ZaksenDIku/js-fetch-test.git
 cd js-fetch-test
-git switch feature/fetch-400-mini-lab
-python3 -m http.server 8000
+git switch feature/zak-booking-fullstack
+./mvnw spring-boot:run
 ```
 
-Åbn **http://localhost:8000** i Chrome. Stop serveren med `Ctrl+C`.
+Åbn **http://localhost:8080**. Stop med `Ctrl+C`. Kræver **Java 21** og internet ved første Maven-download. `./mvnw` bruger din eksisterende Maven, hvis den er installeret; ellers henter den Apache Maven 3.9.11 med SHA-512-kontrol. På Mac har du allerede `curl` og `shasum`. Kontrollér Java med `java -version`. Hvis du får `Permission denied`: `chmod +x mvnw`.
 
-> Python bruges kun til at vise de statiske filer lokalt. Selve appen består udelukkende af HTML, CSS og vanilla JavaScript. Intet skal installeres med npm.
->
-> Siden skal åbnes via `http://localhost:8000`, **ikke** ved at dobbeltklikke på `index.html` (`file://`). Service Workers kræver localhost eller HTTPS.
+**Test:**
 
-Hvis port 8000 er optaget, kan du bruge `python3 -m http.server 8001` og åbne `http://localhost:8001`.
+```bash
+./mvnw test
+node --check src/main/resources/static/app.js
+```
 
-## Prøv begge knapper
+**Husk:** Første opstart henter Spring Boot-afhængigheder. H2 gemmer databasen i `data/zakbooking.mv.db` (oprettes automatisk). Nye bookinger overlever genstart. Mappen er ignoreret af Git.
 
-1. **Send korrekt request** sender `{"name":"Zak"}`. Du får **HTTP 200** og `response.ok = true`.
-2. **Send forkert request** sender `{"name":""}`. Du får **HTTP 400** og `response.ok = false`.
-3. Læs det JSON-svar og den forklaring, der vises på siden. Kun én request behandles ad gangen.
+## Prøv det i denne rækkefølge
 
-**Vigtigt:** En HTTP 400-status er *ikke* en netværksfejl. `fetch()` modtager et svar og fortsætter inde i `try`. Kun når requesten ikke kan få et HTTP-svar, går den normalt i `catch`.
+1. **Booking** – indtast navn, e-mail, behandling, dato og ledig tid. Klik **Opret booking**. Se bookinglisten; rediger eller aflys.
+2. **Lær systemet** – klik gennem de 12 trin fra browser til database og tilbage. Kodeklippene er hentet fra projektets filer og viser den faktiske struktur.
+3. **JSON Inspector** – sammenlign JavaScript Object, JSON String, HTTP, DTO, Entity/H2 og Response. Vælg en request for at se data.
+4. **Fejlfinding** – lav en blank request (400), et ukendt ID (404) og en dobbeltbooking (409). Netværksøvelsen sender mod en utilgængelig localhost-port og giver ingen HTTP-status.
+5. **JavaScript fra bunden** – vælg ét emne ad gangen; læs den korte analogi, find fejlen, og forklar kodeflowet mundtligt.
 
-## Se fejlen i Developer Tools
+**Developer Tools:** Chrome på Mac: `⌥⌘I` → **Network** → **Fetch/XHR** → klik på en request. Under **Headers** ser du `Request Method` og `Status Code`, under **Payload** JSON, og under **Response** serverens JSON. I **Console** kan du undersøge JavaScript-fejl.
 
-1. Åbn Developer Tools: `⌥⌘I` på Mac (eller `F12`).
-2. Gå til **Network**, og klik på **Send forkert request**.
-3. Find **api/tjek** i listen (du kan vælge filteret **Fetch/XHR**).
-4. Se **Headers → Status Code: 400**, **Payload → name: ""** og **Response → fejl**.
-5. Prøv den korrekte knap og sammenlign status **200** og JSON-svaret.
+## REST API
 
-Network kan markere svaret som leveret af **ServiceWorker**, fordi vi simulerer API'et lokalt i browseren.
+| Metode | Endpoint | Succes | Fejl |
+|---|---|---|---|
+| GET | `/api/treatments` | 200 | – |
+| GET | `/api/availability?treatmentId=1&date=2099-11-10` | 200 | 400, 404 |
+| GET | `/api/bookings` | 200 | – |
+| GET | `/api/bookings/{id}` | 200 | 404 |
+| POST | `/api/bookings` | 201 + Location | 400, 404, 409 |
+| PUT | `/api/bookings/{id}` | 200 | 400, 404, 409 |
+| DELETE | `/api/bookings/{id}` | 204 uden body | 404 |
 
-## Simulér en netværksfejl (anden slags fejl)
+POST eksempel (vælg en **fremtidig** mandag–lørdag kl. 09–17 med 30-minutters start):
 
-Hvis du vil se `catch` i praksis i Chrome:
+```bash
+curl -i -X POST http://localhost:8080/api/bookings \
+  -H "Content-Type: application/json" \
+  -d '{"customerName":"Zak","customerEmail":"zak@example.dk","treatmentId":1,"startTime":"2099-11-10T10:00:00"}'
+```
 
-1. Lad siden være åben. Gå til Developer Tools → **Application → Service Workers**, og slå **Bypass for network** til.
-2. Gå til **Network**, og vælg **Offline** i forbindelsesmenuen.
-3. Klik på en af knapperne. Der vises nu **Netværksfejl · ingen HTTP-status**. Det er forskelligt fra HTTP 400.
-4. Skift tilbage til **Online**, slå **Bypass for network** fra, og genindlæs siden.
+`startTime` er lokal tid uden tidszone, og salonens åbningstid er mandag–lørdag 09:00–17:00. 30-minutters startintervaller. Overlappende behandlinger blokeres. DELETE er **soft delete**: status bliver `CANCELLED`, så historikken bevares.
 
-## Læs filerne i denne rækkefølge
+Fejlform:
 
-1. `index.html` – knapperne og de steder, vi viser resultatet.
-2. `script.js` – læs først `sendRequest()` for `fetch`, `response.status`, `response.ok` og `catch`. Se derefter `start()`.
-3. `mock-api.js` – vores minimale lokale API, der vælger mellem 200 og 400.
-4. `style.css` – kun udseendet (bordeauxfarvet).
+```json
+{"status":400,"error":"Bad Request","message":"Kundens navn må ikke være tomt"}
+```
 
-## Sådan fungerer mock-API'et
+**Ikke det samme:** HTTP 400/404/409 = serveren svarede, og `response.ok === false`; netværksfejl = intet HTTP-svar, så `fetch` afviser sin Promise og rammer `catch`.
 
-`mock-api.js` er en **Service Worker**: et lille JavaScript-script, der kan opfange `fetch()`-requests fra denne side og returnere et `Response`-objekt med status 200 eller 400. Det er derfor **en simulation i browseren, ikke en selvstændig backend**. `curl` eller Postman får ikke disse mock-svar fra Python-serveren.
+## Læs kode i denne rækkefølge
 
-## Hurtig kontrol
+`src/main/resources/static/index.html` → `app.js` (læs `readForm`, `api`, `saveBooking`) → `web/BookingController.java` → `dto/BookingRequest.java` → `service/BookingService.java` → `repository/BookingRepository.java` → `model/Booking.java` → `application.properties`.
 
-- [ ] Første besøg: knapperne aktiveres, når mock-API'et er klar.
-- [ ] Korrekt request: 200, `response.ok = true`, en `besked` i JSON.
-- [ ] Forkert request: 400, `response.ok = false`, en `fejl` i JSON.
-- [ ] Developer Tools → Network viser request, payload og status.
-- [ ] Offline + Bypass for network viser netværksfejl uden HTTP-status.
+Dokumentationen ligger i [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/JAVASCRIPT-GUIDE.md](docs/JAVASCRIPT-GUIDE.md), [docs/HTTP-JSON-FLOW.md](docs/HTTP-JSON-FLOW.md), [docs/EXAM-QUESTIONS.md](docs/EXAM-QUESTIONS.md) og [docs/PROJECT-BRAIN.md](docs/PROJECT-BRAIN.md).
+
+## Referencer og afgrænsning
+
+Referencekoden til [ZaksenDIku/electrostorage](https://github.com/ZaksenDIku/electrostorage) og [TheRealZak1/electrostorage](https://github.com/TheRealZak1/electrostorage) indeholder Spring Boot/JPA/H2/JavaScript. [ProgrammeringEK](https://github.com/ZaksenDIku/ProgrammeringEK) er også tilgængeligt. **Den oprindelige 24-timers opgavebeskrivelse blev ikke fundet og er derfor ikke genskabt eller citeret som krav.** ZAK BOOKING har et andet domæne og egen implementering.
+
+Dette er et **eksamenslab**, ikke en produktionsklar frisørsalon: ingen login, ingen betaling, én samlet ressource (én stol), én lokal serverproces. Konfliktkontrol er ikke designet til parallelle multi-server deployments. Ingen kundeoplysninger bør bruges som rigtige følsomme data i dette læringsprojekt.
