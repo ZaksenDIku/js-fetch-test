@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fetch-lab · Forstå HTTP 400</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="intro">
+        <p class="eyebrow">JavaScript · Mini-lab</p>
+        <h1>Hvorfor får jeg HTTP 400?</h1>
+        <p>Send én request ad gangen. Se status, serverens svar og forklaringen — helt uden en rigtig backend.</p>
+      </header>
+
+      <section class="panel" aria-labelledby="task-heading">
+        <div class="heading-row">
+          <h2 id="task-heading">Din ene opgave</h2>
+          <span class="step">1 af 1</span>
+        </div>
+        <p>Serveren forventer et navn. Den ene knap sender et navn; den anden sender et tomt navn.</p>
+        <p id="ready" class="ready" role="status">Starter lokalt mock-API…</p>
+        <div class="actions">
+          <button id="correct" disabled>Send korrekt request</button>
+          <button id="wrong" class="secondary" disabled>Send forkert request</button>
+        </div>
+      </section>
+
+      <section class="panel result" aria-label="Resultat" aria-live="polite">
+        <div class="status-row">
+          <span>HTTP-status</span>
+          <strong id="status">Ingen request endnu</strong>
+        </div>
+        <h2>Serverens svar</h2>
+        <pre id="server">Tryk på en af knapperne.</pre>
+        <h2>Hvorfor?</h2>
+        <p id="why">Når du sender en request, vises en kort forklaring her.</p>
+      </section>
+
+      <details class="lesson">
+        <summary>5 begreber forklaret enkelt</summary>
+        <div class="lesson-content">
+          <p><strong>Variabel:</strong> En navngivet æske, hvor vi gemmer en værdi, fx <code>response</code>.</p>
+          <p><strong>Funktion:</strong> En lille opskrift, vi kan bruge igen, fx <code>sendRequest()</code>.</p>
+          <p><strong>fetch():</strong> Et bud, der sender en HTTP-request og venter på svar.</p>
+          <p><strong>HTTP 400:</strong> Serveren modtog bestillingen, men der mangler noget — her et navn. <code>response.ok</code> er derfor <code>false</code>.</p>
+          <p><strong>Network:</strong> Åbn Developer Tools med <code>F12</code> eller <code>⌥⌘I</code>, vælg <strong>Network</strong>, klik på en knap, og find <code>api/tjek</code>. Se <strong>Status</strong>, <strong>Payload</strong> og <strong>Response</strong>.</p>
+          <p><strong>Netværksfejl ≠ HTTP 400:</strong> Ved 400 fik vi et svar. Ved netværksfejl fik vi intet HTTP-svar, og koden går i <code>catch</code>. Se README for en lille offline-test.</p>
+        </div>
+      </details>
+    </main>
+  </body>
+</html>
