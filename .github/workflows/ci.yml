@@ -21,3 +21,68 @@ jobs:
         run: node --check src/main/resources/static/app.js
       - name: Maven/JUnit + H2 integration
         run: ./mvnw test
+      - name: Smoke-test Spring Boot, HTML og rigtig fetch uden npm
+        shell: bash
+        run: |
+          ./mvnw spring-boot:run > /tmp/zak-booking-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/ -o /tmp/zak-index.html; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/zak-booking-server.log
+            exit 1
+          fi
+          grep -q "ZAK BOOKING" /tmp/zak-index.html
+          curl --fail --silent http://127.0.0.1:8080/app.js -o /tmp/zak-app.js
+          node <<'JS'
+          const assert = require("node:assert/strict");
+          const base = "http://127.0.0.1:8080";
+          async function run() {
+            const treatmentsResponse = await fetch(base + "/api/treatments");
+            assert.equal(treatmentsResponse.status, 200);
+            const treatments = await treatmentsResponse.json();
+            assert.ok(treatments.length >= 1);
+
+            const date = new Date(Date.now() + 14 * 86400000);
+            while (date.getUTCDay() === 0) date.setUTCDate(date.getUTCDate() + 1);
+            const booking = {
+              customerName: "Smoke",
+              customerEmail: "smoke@example.dk",
+              treatmentId: treatments[0].id,
+              startTime: date.toISOString().slice(0, 10) + "T10:00:00"
+            };
+            const post = body => fetch(base + "/api/bookings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body)
+            });
+            const createdResponse = await post(booking);
+            assert.equal(createdResponse.status, 201);
+            const created = await createdResponse.json();
+            assert.ok(created.id > 0);
+
+            const fetched = await fetch(base + "/api/bookings/" + created.id);
+            assert.equal(fetched.status, 200);
+            assert.equal((await fetched.json()).customerName, "Smoke");
+
+            const conflict = await post(booking);
+            assert.equal(conflict.status, 409);
+
+            const invalid = await post({ ...booking, customerName: "" });
+            assert.equal(invalid.status, 400);
+            assert.equal((await invalid.json()).status, 400);
+
+            const cancel = await fetch(base + "/api/bookings/" + created.id, { method: "DELETE" });
+            assert.equal(cancel.status, 204);
+            assert.equal(await cancel.text(), "");
+            console.log("HTTP smoke passed: HTML, JS, GET 200, POST 201, GET 200, 409, 400, DELETE 204");
+          }
+          run().catch(error => { console.error(error); process.exitCode = 1; });
+          JS
