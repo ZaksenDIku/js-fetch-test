@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#591d37">
+  <title>ZAK BOOKING · Full-stack eksamenslab</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="logo">Z</span><div><strong>ZAK BOOKING</strong><small>Full-stack eksamenslab · Java 21 + JavaScript</small></div></div>
+    <span class="connection" id="connection" role="status">● Forbinder til backend…</span>
+  </header>
+  <main class="shell">
+    <section class="welcome">
+      <div><span class="eyebrow">LÆR VED AT BRUGE SYSTEMET</span><h1>Fra klik til database – og tilbage igen.</h1><p>Book en frisørtid med en rigtig Java-backend. Følg derefter din request gennem alle lag.</p></div>
+      <div class="help"><strong>🧭 Eksamenstip</strong><p>Åbn Chrome → <kbd>⌥⌘I</kbd> → <strong>Network</strong>. Vælg Fetch/XHR og se hver statuskode.</p></div>
+    </section>
+    <div class="workspace">
+      <section class="panel booking-panel" aria-labelledby="booking-title">
+        <div class="section-header"><div><span class="eyebrow">A · FUNGERENDE APP</span><h2 id="booking-title">✂️ Book en tid</h2></div><span class="pill">H2 · REST</span></div>
+        <form id="booking-form">
+          <div class="field-pair"><label>Dit navn<input id="customer-name" name="customerName" autocomplete="name" placeholder="Fx Zak" required maxlength="100"></label>
+          <label>E-mail<input id="customer-email" type="email" name="customerEmail" autocomplete="email" placeholder="zak@example.dk" required maxlength="180"></label></div>
+          <label>Behandling<select id="treatment" required><option value="">Henter behandlinger…</option></select></label>
+          <div class="field-pair"><label>Dato<input id="date" type="date" required></label>
+          <label>Ledig tid<select id="time" required><option value="">Vælg behandling og dato</option></select></label></div>
+          <p id="availability-note" class="note">Åbent mandag–lørdag kl. 09–17 · start hver 30. minut</p>
+          <div class="form-actions"><button class="primary" id="save" type="submit">Opret booking · POST</button><button type="button" id="reset" class="quiet" hidden>Fortryd redigering</button></div>
+        </form>
+        <p id="notice" class="notice" role="status" aria-live="polite">Vælg en behandling for at se ledige tider.</p>
+        <div class="subheader"><h3>📅 Bookinger</h3><button type="button" class="text-button" id="refresh">Opdater · GET</button></div>
+        <div id="bookings" class="bookings" aria-live="polite"><p class="muted">Indlæser bookinger…</p></div>
+      </section>
+      <section class="panel lab-panel" aria-labelledby="lab-title">
+        <div class="section-header"><div><span class="eyebrow">B · INTERAKTIVT LAB</span><h2 id="lab-title">🧠 Følg requesten</h2></div><span class="pill">12 trin</span></div>
+        <p class="muted">Klik på et lag. Se den konkrete kode og forstå, hvor data bevæger sig hen.</p>
+        <div id="flow" class="flow" aria-label="Interaktivt dataflow">
+          <button type="button" class="flow-step active" data-step="0">🖱️ Klik</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="1">⚡ Event</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="2">📦 Objekt</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="3">🔤 JSON</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="4">🌐 Fetch</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="5">🚪 Controller</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="6">✅ DTO</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="7">⚙️ Service</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="8">🗃️ Repository</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="9">💾 H2</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="10">📨 Response</button><span aria-hidden="true">→</span>
+          <button type="button" class="flow-step" data-step="11">🖥️ DOM</button>
+        </div>
+        <article class="step-detail" aria-live="polite">
+          <div class="step-meta"><span id="step-count">TRIN 1 / 12</span><span id="step-file">index.html</span></div>
+          <h3 id="step-name">Brugeren klikker</h3>
+          <p id="step-why">Et klik er begyndelsen på requesten.</p>
+          <div class="two-data"><div><small>IND</small><p id="step-in">Brugerens input</p></div><div><small>UD</small><p id="step-out">Submit-event</p></div></div>
+          <pre><code id="step-code"></code></pre>
+          <div class="pager"><button type="button" id="prev-step" class="quiet" disabled>← Forrige</button><button type="button" id="next-step" class="primary">Næste →</button></div>
+        </article>
+        <details class="inspector" open><summary>🔬 JSON Inspector <span>Aktuelle data fra dine kald</span></summary>
+          <div class="inspector-tabs" role="group" aria-label="JSON-faser">
+            <button type="button" data-inspect="object" class="selected">JS Object</button>
+            <button type="button" data-inspect="json">JSON String</button>
+            <button type="button" data-inspect="http">HTTP</button>
+            <button type="button" data-inspect="dto">Java DTO</button>
+            <button type="button" data-inspect="entity">Entity / H2</button>
+            <button type="button" data-inspect="response">Response</button>
+          </div>
+          <p id="inspect-explain" class="muted">Et JavaScript-objekt lever i browserens hukommelse.</p>
+          <pre id="inspector-code" class="json-code" aria-live="polite"></pre>
+          <p class="legend"><span class="string">String</span> · <span class="number">Number</span> · <span class="boolean">Boolean</span> · <span class="null">Null</span> · <span class="key">Object/Array</span></p>
+        </details>
+      </section>
+    </div>
+    <section class="panel practice" aria-labelledby="practice-title">
+      <div class="section-header"><div><span class="eyebrow">ØV I DIT EGET TEMPO</span><h2 id="practice-title">🧪 Fejlfinding og JavaScript</h2></div><span class="pill">Én øvelse ad gangen</span></div>
+      <div class="practice-grid">
+        <div><h3>HTTP-statuskoder</h3><p class="muted">Alle 400, 404 og 409 kommer fra Spring Boot. Netværksfejlen får intet HTTP-svar.</p>
+          <div class="scenario"><button type="button" data-scenario="200">🟢 Gyldigt kald · 200</button><button type="button" data-scenario="400">🟠 Manglende navn · 400</button><button type="button" data-scenario="404">🟠 Ukendt booking · 404</button><button type="button" data-scenario="409">🟠 Dobbeltbooking · 409</button><button type="button" data-scenario="network">📡 Netværksfejl</button></div>
+          <p id="scenario-help" class="note">Vælg en test, og find requesten i Developer Tools → Network.</p>
+          <div id="http-result" class="http-result"><span class="status-chip">Ingen request endnu</span><pre>Opret en booking eller afprøv et scenarie.</pre></div>
+        </div>
+        <div><h3>JavaScript fra bunden</h3><label for="lesson">Vælg emne</label><select id="lesson"></select>
+          <article class="lesson"><h4 id="lesson-title"></h4><p id="lesson-what"></p><p id="lesson-why"></p><p id="lesson-analogy"></p><p id="lesson-diagram" class="mini-diagram"></p><pre><code id="lesson-code"></code></pre>
+            <p><strong>Prøv selv:</strong> <span id="lesson-try"></span></p><p><strong>Find fejlen:</strong> <span id="lesson-bug"></span></p><p><strong>Mundtligt:</strong> <span id="lesson-question"></span></p></article>
+        </div>
+      </div>
+    </section>
+    <footer>Ingen React · ingen mock-API · data gemmes på din Mac · <a href="https://github.com/ZaksenDIku/js-fetch-test">Kildekode på GitHub</a></footer>
+  </main>
+</body>
+</html>

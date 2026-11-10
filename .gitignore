@@ -1,3 +1,7 @@
-node_modules/
+/target/
+/data/
+.mvn/apache-maven-*/
+*.log
 .DS_Store
-.env
+.idea/
+*.iml
